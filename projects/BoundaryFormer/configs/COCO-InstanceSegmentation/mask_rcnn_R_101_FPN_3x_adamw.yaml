@@ -14,5 +14,8 @@ SOLVER:
   IMS_PER_BATCH: 16
   CLIP_GRADIENTS:
     ENABLED: False
+INPUT:
+  # Is this mandatory for 3x?
+  DETR_STYLE_AUG: True
 TEST:
   EVAL_PERIOD: 15000
