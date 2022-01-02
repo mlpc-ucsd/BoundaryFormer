@@ -1,0 +1,7 @@
+_BASE_: "./Base-BoundaryFormer-SemSeg-FPN.yaml"
+MODEL:
+  SEM_SEG_HEAD:
+    NAME: "BoundaryFormerSemSegHead"
+    IN_FEATURES: ["p2", "p3", "p4", "p5"]
+    NUM_CLASSES: 171
+    IGNORE_VALUE: 255

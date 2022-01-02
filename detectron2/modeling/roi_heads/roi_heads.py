@@ -729,7 +729,9 @@ class StandardROIHeads(ROIHeads):
         """
         See :class:`ROIHeads.forward`.
         """
+        padding_mask = images.padding_mask
         del images
+        
         if self.training:
             assert targets, "'targets' argument is required during training"
             proposals = self.label_and_sample_proposals(proposals, targets)
@@ -740,18 +742,18 @@ class StandardROIHeads(ROIHeads):
             # Usually the original proposals used by the box head are used by the mask, keypoint
             # heads. But when `self.train_on_pred_boxes is True`, proposals will contain boxes
             # predicted by the box head.
-            losses.update(self._forward_mask(features, proposals))
+            losses.update(self._forward_mask(features, proposals, padding_mask=padding_mask))
             losses.update(self._forward_keypoint(features, proposals))
             return proposals, losses
         else:
             pred_instances = self._forward_box(features, proposals)
             # During inference cascaded prediction is used: the mask and keypoints heads are only
             # applied to the top scoring box detections.
-            pred_instances = self.forward_with_given_boxes(features, pred_instances)
+            pred_instances = self.forward_with_given_boxes(features, pred_instances, padding_mask=padding_mask)
             return pred_instances, {}
 
     def forward_with_given_boxes(
-        self, features: Dict[str, torch.Tensor], instances: List[Instances]
+        self, features: Dict[str, torch.Tensor], instances: List[Instances], padding_mask=None
     ) -> List[Instances]:
         """
         Use the given boxes in `instances` to produce other (non-box) per-ROI outputs.
@@ -773,7 +775,7 @@ class StandardROIHeads(ROIHeads):
         assert not self.training
         assert instances[0].has("pred_boxes") and instances[0].has("pred_classes")
 
-        instances = self._forward_mask(features, instances)
+        instances = self._forward_mask(features, instances, padding_mask=padding_mask)
         instances = self._forward_keypoint(features, instances)
         return instances
 
@@ -815,7 +817,7 @@ class StandardROIHeads(ROIHeads):
             pred_instances, _ = self.box_predictor.inference(predictions, proposals)
             return pred_instances
 
-    def _forward_mask(self, features: Dict[str, torch.Tensor], instances: List[Instances]):
+    def _forward_mask(self, features: Dict[str, torch.Tensor], instances: List[Instances], padding_mask=None):
         """
         Forward logic of the mask prediction branch.
 
@@ -841,9 +843,10 @@ class StandardROIHeads(ROIHeads):
             features = [features[f] for f in self.mask_in_features]
             boxes = [x.proposal_boxes if self.training else x.pred_boxes for x in instances]
             features = self.mask_pooler(features, boxes)
+            return self.mask_head(features, instances, padding_mask=padding_mask)
         else:
-            features = {f: features[f] for f in self.mask_in_features}
-        return self.mask_head(features, instances)
+            features = {f: features[f] for f in self.mask_in_features}            
+            return self.mask_head(features, instances)
 
     def _forward_keypoint(self, features: Dict[str, torch.Tensor], instances: List[Instances]):
         """

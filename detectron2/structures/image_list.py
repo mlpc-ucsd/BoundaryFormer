@@ -20,7 +20,7 @@ class ImageList(object):
             During tracing, it becomes list[Tensor] instead.
     """
 
-    def __init__(self, tensor: torch.Tensor, image_sizes: List[Tuple[int, int]]):
+    def __init__(self, tensor: torch.Tensor, image_sizes: List[Tuple[int, int]], padding_mask: torch.Tensor=None):
         """
         Arguments:
             tensor (Tensor): of shape (N, H, W) or (N, C_1, ..., C_K, H, W) where K >= 1
@@ -29,6 +29,7 @@ class ImageList(object):
         """
         self.tensor = tensor
         self.image_sizes = image_sizes
+        self.padding_mask = padding_mask
 
     def __len__(self) -> int:
         return len(self.image_sizes)
@@ -49,7 +50,7 @@ class ImageList(object):
     @torch.jit.unused
     def to(self, *args: Any, **kwargs: Any) -> "ImageList":
         cast_tensor = self.tensor.to(*args, **kwargs)
-        return ImageList(cast_tensor, self.image_sizes)
+        return ImageList(cast_tensor, self.image_sizes, padding_mask=(self.padding_mask.to(*args, **kwargs) if self.padding_mask is not None else None))
 
     @property
     def device(self) -> device:
@@ -100,6 +101,7 @@ class ImageList(object):
             image_size = image_sizes[0]
             padding_size = [0, max_size[-1] - image_size[1], 0, max_size[-2] - image_size[0]]
             batched_imgs = F.pad(tensors[0], padding_size, value=pad_value).unsqueeze_(0)
+            batched_masks = tensors[0].new_full([len(tensors)] + list(max_size), 1.0).bool()
         else:
             # max_size can be a tensor in tracing mode, therefore convert to list
             batch_shape = [len(tensors)] + list(tensors[0].shape[:-2]) + list(max_size)
@@ -107,4 +109,6 @@ class ImageList(object):
             for img, pad_img in zip(tensors, batched_imgs):
                 pad_img[..., : img.shape[-2], : img.shape[-1]].copy_(img)
 
-        return ImageList(batched_imgs.contiguous(), image_sizes)
+            batched_masks = tensors[0].new_full([len(tensors)] + list(max_size), 1.0).bool()
+
+        return ImageList(batched_imgs.contiguous(), image_sizes, batched_masks)

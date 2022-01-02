@@ -110,7 +110,7 @@ class SemanticSegmentor(nn.Module):
             ).tensor
         else:
             targets = None
-        results, losses = self.sem_seg_head(features, targets)
+        results, losses = self.sem_seg_head(features, images, targets)
 
         if self.training:
             return losses
@@ -221,7 +221,7 @@ class SemSegFPNHead(nn.Module):
             "loss_weight": cfg.MODEL.SEM_SEG_HEAD.LOSS_WEIGHT,
         }
 
-    def forward(self, features, targets=None):
+    def forward(self, features, images, targets=None):
         """
         Returns:
             In training, returns (None, dict of losses)
