@@ -1,8 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import numpy as np
 import torch
 from torch.nn import functional as F
 
-from detectron2.structures import Instances, ROIMasks
+from detectron2.structures import Instances, ROIMasks, BoxMode
+from detectron2.structures.masks import polygons_to_bitmask
 
 
 # perhaps should rename to "resize_instance"
@@ -58,7 +60,30 @@ def detector_postprocess(
 
     results = results[output_boxes.nonempty()]
 
-    if results.has("pred_masks"):
+    if results.has("pred_polys"):
+        if len(results) == 0:
+            results.pred_masks = torch.zeros((0, results.image_size[0], results.image_size[1]), device=output_boxes.device)
+        else:        
+            xy, wh = torch.split(BoxMode.convert(results.pred_boxes.tensor, BoxMode.XYXY_ABS, BoxMode.XYWH_ABS), 2, dim=-1)
+            pred_polys = xy.unsqueeze(1) + wh.unsqueeze(1) * results.pred_polys
+
+            results.pred_masks = torch.from_numpy(np.stack([
+                polygons_to_bitmask([
+                    p.cpu().numpy().reshape(-1)], results.image_size[0], results.image_size[1]) for p in pred_polys])).to(output_boxes.device)
+        
+            # # small change.
+            # for idx, p in enumerate(results.pred_polys):
+            #     # only use the predicted box if pooled.
+            #     pred_box = results.pred_boxes.tensor[idx]
+            #     xy, wh = pred_box[:2], pred_box[2:] - pred_box[:2]
+            #     p = p * wh.unsqueeze(0) + xy.unsqueeze(0)
+            
+            #     mask = 
+            #     result_masks.append(mask)
+
+            # else:
+            # results.pred_masks = torch.from_numpy(np.stack(result_masks)).to(output_boxes.device)    
+    elif results.has("pred_masks"):
         if isinstance(results.pred_masks, ROIMasks):
             roi_masks = results.pred_masks
         else:

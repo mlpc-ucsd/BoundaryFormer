@@ -174,7 +174,7 @@ class BaseMaskRCNNHead(nn.Module):
     def from_config(cls, cfg, input_shape):
         return {"vis_period": cfg.VIS_PERIOD}
 
-    def forward(self, x, instances: List[Instances]):
+    def forward(self, x, instances: List[Instances], padding_mask=None):
         """
         Args:
             x: input region feature(s) provided by :class:`ROIHeads`.
