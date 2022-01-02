@@ -598,22 +598,41 @@ def build_augmentation(cfg, is_train):
     Returns:
         list[Augmentation]
     """
-    if is_train:
-        min_size = cfg.INPUT.MIN_SIZE_TRAIN
-        max_size = cfg.INPUT.MAX_SIZE_TRAIN
-        sample_style = cfg.INPUT.MIN_SIZE_TRAIN_SAMPLING
+    if cfg.INPUT.DETR_STYLE_AUG:
+        print("Using DETR-style augmentation. Please take care for fair comparisons since this is not D2-standard.")
+        if is_train:
+            augmentation = [
+                T.RandomFlip(horizontal=True),
+                T.RandomSelect(
+                    T.ResizeShortestEdge(min_size, max_size, sample_style="choice"),
+                    T.AugmentationList([
+                        T.ResizeShortestEdge([400, 500, 600], sample_style="choice"),
+                        T.RandomCrop("absolute", (384, 600)),
+                        T.ResizeShortestEdge(min_size, max_size=max_size, sample_style="choice"),
+                    ])
+                )
+            ]
+        else:
+            augmentation = [T.ResizeShortestEdge(min_size, max_size, sample_style)]            
     else:
-        min_size = cfg.INPUT.MIN_SIZE_TEST
-        max_size = cfg.INPUT.MAX_SIZE_TEST
-        sample_style = "choice"
-    augmentation = [T.ResizeShortestEdge(min_size, max_size, sample_style)]
-    if is_train and cfg.INPUT.RANDOM_FLIP != "none":
-        augmentation.append(
-            T.RandomFlip(
-                horizontal=cfg.INPUT.RANDOM_FLIP == "horizontal",
-                vertical=cfg.INPUT.RANDOM_FLIP == "vertical",
+        if is_train:
+            min_size = cfg.INPUT.MIN_SIZE_TRAIN
+            max_size = cfg.INPUT.MAX_SIZE_TRAIN
+            sample_style = cfg.INPUT.MIN_SIZE_TRAIN_SAMPLING
+        else:
+            min_size = cfg.INPUT.MIN_SIZE_TEST
+            max_size = cfg.INPUT.MAX_SIZE_TEST
+            sample_style = "choice"
+
+        augmentation = [T.ResizeShortestEdge(min_size, max_size, sample_style)]
+        if is_train and cfg.INPUT.RANDOM_FLIP != "none":
+            augmentation.append(
+                T.RandomFlip(
+                    horizontal=cfg.INPUT.RANDOM_FLIP == "horizontal",
+                    vertical=cfg.INPUT.RANDOM_FLIP == "vertical",
+                )
             )
-        )
+            
     return augmentation
 
 

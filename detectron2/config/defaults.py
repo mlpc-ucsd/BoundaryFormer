@@ -75,6 +75,10 @@ _C.INPUT.CROP.TYPE = "relative_range"
 # pixels if CROP.TYPE is "absolute"
 _C.INPUT.CROP.SIZE = [0.9, 0.9]
 
+# Not sure the easiest way to integrate this but investigating if this is necessary
+# for good performance on 3x schedule with AdamW on ResNet-101.
+_C.INPUT.DETR_STYLE_AUG = False
+
 
 # Whether the model needs RGB, YUV, HSV etc.
 # Should be one of the modes defined here, as we use PIL to read the image:
