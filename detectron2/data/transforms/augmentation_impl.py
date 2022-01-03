@@ -33,6 +33,7 @@ __all__ = [
     "RandomSaturation",
     "RandomLighting",
     "RandomRotation",
+    "RandomSelect",
     "Resize",
     "ResizeScale",
     "ResizeShortestEdge",
@@ -73,6 +74,39 @@ class RandomApply(Augmentation):
         else:
             return NoOpTransform()
 
+class RandomSelect(Augmentation):
+    """
+    Randomly apply an augmentation with a given probability.
+    """
+
+    def __init__(self, aug1, aug2, prob=0.5):
+        """
+        Args:
+            tfm_or_aug (Transform, Augmentation): the transform or augmentation
+                to be applied. It can either be a `Transform` or `Augmentation`
+                instance.
+            prob (float): probability between 0.0 and 1.0 that
+                the wrapper transformation is applied
+        """
+        super().__init__()
+        self.aug1 = _transform_to_aug(aug1)
+        self.aug2 = _transform_to_aug(aug2)
+        assert 0.0 <= prob <= 1.0, f"Probablity must be between 0.0 and 1.0 (given: {prob})"
+        self.prob = prob
+
+    def get_transform(self, *args):
+        do = self._rand_range() < self.prob
+        if do:
+            return self.aug1.get_transform(*args)
+        else:
+            return self.aug2.get_transform(*args)
+
+    def __call__(self, aug_input):
+        do = self._rand_range() < self.prob
+        if do:
+            return self.aug1(aug_input)
+        else:
+            return self.aug2(aug_input)
 
 class RandomFlip(Augmentation):
     """
