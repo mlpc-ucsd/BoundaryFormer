@@ -127,11 +127,27 @@ class COCOEvaluator(DatasetEvaluator):
 
             cache_path = os.path.join(output_dir, f"{dataset_name}_coco_format.json")
             self._metadata.json_file = cache_path
+
             convert_to_coco_json(dataset_name, cache_path)
 
         json_file = PathManager.get_local_path(self._metadata.json_file)
-        with contextlib.redirect_stdout(io.StringIO()):
-            self._coco_api = COCO(json_file)
+        
+        #with contextlib.redirect_stdout(io.StringIO()):
+        self._coco_api = COCO(json_file)
+
+        if "kins" in dataset_name:
+            # fix this up, just in time.
+            for ann_id, ann in self._coco_api.anns.items():
+                if "inmodal" in dataset_name:
+                    ann["bbox"] = ann["i_bbox"]
+                    ann["area"] = ann["i_area"]
+                    ann["segmentation"] = ann["i_segm"]
+                else:
+                    ann["bbox"] = ann["a_bbox"]
+                    ann["area"] = ann["a_area"]
+                    ann["segmentation"] = ann["a_segm"]
+
+                ann["iscrowd"] = 0
 
         # Test set json files do not contain annotations (evaluation must be
         # performed using the COCO evaluation server).

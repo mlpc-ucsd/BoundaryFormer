@@ -27,7 +27,10 @@ logger = logging.getLogger(__name__)
 __all__ = ["load_coco_json", "load_sem_seg", "convert_to_coco_json", "register_coco_instances"]
 
 
-def load_coco_json(json_file, image_root, dataset_name=None, extra_annotation_keys=None):
+box_out_key = "bbox"
+segmentation_out_key = "segmentation"
+
+def load_coco_json(json_file, image_root, dataset_name=None, extra_annotation_keys=None, box_in_key=box_out_key, segmentation_in_key=segmentation_out_key):
     """
     Load a json file with COCO's instances annotation format.
     Currently supports instance detection, instance segmentation,
@@ -146,7 +149,7 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
 
     dataset_dicts = []
 
-    ann_keys = ["iscrowd", "bbox", "keypoints", "category_id"] + (extra_annotation_keys or [])
+    ann_keys = ["iscrowd", "keypoints", "category_id"] + [box_out_key] + (extra_annotation_keys or [])
 
     num_instances_without_valid_segmentation = 0
 
@@ -167,17 +170,25 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
             # actually contains bugs that, together with certain ways of using COCO API,
             # can trigger this assertion.
             assert anno["image_id"] == image_id
-
             assert anno.get("ignore", 0) == 0, '"ignore" in COCO json file is not supported.'
 
+            # re-map.
+            if (box_in_key != box_out_key) and (box_in_key in anno):                
+                anno[box_out_key] = anno[box_in_key]
+                del anno[box_in_key]
+
+            if (segmentation_in_key != segmentation_out_key) and (segmentation_in_key in anno):
+                anno[segmentation_out_key] = anno[segmentation_in_key]
+                del anno[segmentation_in_key]
+                
             obj = {key: anno[key] for key in ann_keys if key in anno}
-            if "bbox" in obj and len(obj["bbox"]) == 0:
+            if box_out_key in obj and len(obj[box_out_key]) == 0:
                 raise ValueError(
                     f"One annotation of image {image_id} contains empty 'bbox' value! "
                     "This json does not have valid COCO format."
                 )
 
-            segm = anno.get("segmentation", None)
+            segm = anno.get(segmentation_out_key, None)
             if segm:  # either list[list[float]] or dict(RLE)
                 if isinstance(segm, dict):
                     if isinstance(segm["counts"], list):
@@ -189,7 +200,7 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
                     if len(segm) == 0:
                         num_instances_without_valid_segmentation += 1
                         continue  # ignore this instance
-                obj["segmentation"] = segm
+                obj[segmentation_out_key] = segm
 
             keypts = anno.get("keypoints", None)
             if keypts:  # list[int]

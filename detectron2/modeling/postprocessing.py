@@ -70,19 +70,6 @@ def detector_postprocess(
             results.pred_masks = torch.from_numpy(np.stack([
                 polygons_to_bitmask([
                     p.cpu().numpy().reshape(-1)], results.image_size[0], results.image_size[1]) for p in pred_polys])).to(output_boxes.device)
-        
-            # # small change.
-            # for idx, p in enumerate(results.pred_polys):
-            #     # only use the predicted box if pooled.
-            #     pred_box = results.pred_boxes.tensor[idx]
-            #     xy, wh = pred_box[:2], pred_box[2:] - pred_box[:2]
-            #     p = p * wh.unsqueeze(0) + xy.unsqueeze(0)
-            
-            #     mask = 
-            #     result_masks.append(mask)
-
-            # else:
-            # results.pred_masks = torch.from_numpy(np.stack(result_masks)).to(output_boxes.device)    
     elif results.has("pred_masks"):
         if isinstance(results.pred_masks, ROIMasks):
             roi_masks = results.pred_masks
