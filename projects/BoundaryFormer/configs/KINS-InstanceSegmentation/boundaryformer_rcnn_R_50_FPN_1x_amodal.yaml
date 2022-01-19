@@ -1,10 +1,12 @@
-_BASE_: "./Base-BoundaryFormer-RCNN-FPN.yaml"
+_BASE_: "../Base-RCNN-FPN.yaml"
 MODEL:
   WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
   MASK_ON: True
   ROI_MASK_HEAD:
     NAME: "BoundaryFormerPolygonHead"
     POOLER_TYPE: ""
+  ROI_HEADS:
+    NUM_CLASSES: 7
   BOUNDARY_HEAD:
     IN_FEATURES: ["p2", "p3", "p4", "p5"]
     PRED_WITHIN_BOX: True
@@ -13,24 +15,27 @@ MODEL:
   DIFFRAS:
     RESOLUTIONS: (64, 64, 64, 64, 64, 64, 64, 64)
     USE_RASTERIZED_GT: False
-    INV_SMOOTHNESS_SCHED: (0.1,)
+    INV_SMOOTHNESS_SCHED: (0.01,)
   RESNETS:
     DEPTH: 50
-  ROI_HEADS:
-    PROPOSAL_ONLY_GT: False
+INPUT:
+  MIN_SIZE_TRAIN: (800, 832, 864, 896, 928, 960, 992, 1024)
+  MIN_SIZE_TRAIN_SAMPLING: "choice"
+  MIN_SIZE_TEST: 1024
+  MAX_SIZE_TRAIN: 2048
+  MAX_SIZE_TEST: 2048
+DATASETS:
+  TRAIN: ("kins_2020_amodal_instance_seg_train",)
+  TEST: ("kins_2020_amodal_instance_seg_val",)
 SOLVER:
   OPTIMIZER: "ADAM"
   BASE_LR: 1e-4
   WEIGHT_DECAY: 0.05
+  WEIGHT_DECAY_BIAS: 0.0
   WEIGHT_DECAY_NORM: 0.0
-  STEPS: (60000, 80000)
-  MAX_ITER: 90000
-  IMS_PER_BATCH: 16
-  CLIP_GRADIENTS:
-    ENABLED: False
-DATASETS:
-  TRAIN: ("coco_2017_train",)
-  TEST: ("coco_2017_val",)
-VIS_PERIOD: 0
+  STEPS: (18000,)
+  MAX_ITER: 24000
+  IMS_PER_BATCH: 8
+  CHECKPOINT_PERIOD: 4000
 TEST:
-  EVAL_PERIOD: 5000
+  EVAL_PERIOD: 4000
