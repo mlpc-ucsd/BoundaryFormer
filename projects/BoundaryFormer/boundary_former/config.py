@@ -2,6 +2,8 @@ import os
 
 from detectron2.config import CfgNode as CN
 
+from boundary_former.fcos.config import add_fcos_config
+
 def add_boundaryformer_config(cfg):
     """
     Add config for BoundaryFormer.
@@ -30,14 +32,14 @@ def add_boundaryformer_config(cfg):
     cfg.MODEL.BOUNDARY_HEAD.MAX_PROPOSALS_PER_IMAGE = 0
     cfg.MODEL.BOUNDARY_HEAD.DROPOUT = 0.0
     cfg.MODEL.BOUNDARY_HEAD.DEEP_SUPERVISION = True
-    cfg.MODEL.BOUNDARY_HEAD.COARSE_SEM_SEG_HEAD_NAME = "" #SemSegFPNHead"
+    cfg.MODEL.BOUNDARY_HEAD.COARSE_SEM_SEG_HEAD_NAME = ""
 
     cfg.MODEL.DIFFRAS = CN()
     cfg.MODEL.DIFFRAS.RESOLUTIONS = [64, 64] 
     cfg.MODEL.DIFFRAS.RASTERIZE_WITHIN_UNION = False
     cfg.MODEL.DIFFRAS.USE_RASTERIZED_GT = False
-    cfg.MODEL.DIFFRAS.INV_SMOOTHNESS_SCHED = (0.001,) #(0.15, 0.005)
-    cfg.MODEL.DIFFRAS.INV_SMOOTHNESS_STEPS = () #(50000.)
+    cfg.MODEL.DIFFRAS.INV_SMOOTHNESS_SCHED = (0.1,)
+    cfg.MODEL.DIFFRAS.INV_SMOOTHNESS_STEPS = ()
 
     cfg.MODEL.ROI_HEADS.PROPOSAL_ONLY_GT = False
     
@@ -51,4 +53,6 @@ def add_boundaryformer_config(cfg):
     cfg.TRAIN_SET_STR = ""
     cfg.CFG_FILE_STR = "default"
     cfg.OPT_STR = "default"
+
+    add_fcos_config(cfg)
     

@@ -71,14 +71,19 @@ def detector_postprocess(
                 polygons_to_bitmask([
                     p.cpu().numpy().reshape(-1)], results.image_size[0], results.image_size[1]) for p in pred_polys])).to(output_boxes.device)
     elif results.has("pred_masks"):
-        if isinstance(results.pred_masks, ROIMasks):
-            roi_masks = results.pred_masks
+        if True:
+            if results.pred_masks.shape[0]:
+                results.pred_masks = F.interpolate(input=results.pred_masks, size=results.image_size, mode="bilinear", align_corners=False).gt(0.5).squeeze(1)
         else:
-            # pred_masks is a tensor of shape (N, 1, M, M)
-            roi_masks = ROIMasks(results.pred_masks[:, 0, :, :])
-        results.pred_masks = roi_masks.to_bitmasks(
-            results.pred_boxes, output_height, output_width, mask_threshold
-        ).tensor  # TODO return ROIMasks/BitMask object in the future
+            if isinstance(results.pred_masks, ROIMasks):
+                roi_masks = results.pred_masks
+            else:
+                # pred_masks is a tensor of shape (N, 1, M, M)
+                roi_masks = ROIMasks(results.pred_masks[:, 0, :, :])
+                
+            results.pred_masks = roi_masks.to_bitmasks(
+                results.pred_boxes, output_height, output_width, mask_threshold
+            ).tensor  # TODO return ROIMasks/BitMask object in the future
 
     if results.has("pred_keypoints"):
         results.pred_keypoints[:, :, 0] *= scale_x
