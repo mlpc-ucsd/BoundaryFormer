@@ -7,11 +7,12 @@ MODEL:
   RESNETS:
     DEPTH: 50
 INPUT:
-  MIN_SIZE_TRAIN: (800, 832, 864, 896, 928, 960, 992, 1024)
+  # KITTI images are quite small: ~12xx x 37x
+  MIN_SIZE_TRAIN: (500, 532, 564, 596, 628, 660, 692, 724)
   MIN_SIZE_TRAIN_SAMPLING: "choice"
-  MIN_SIZE_TEST: 1024
-  MAX_SIZE_TRAIN: 2048
-  MAX_SIZE_TEST: 2048
+  MIN_SIZE_TEST: 500
+  MAX_SIZE_TRAIN: 2398
+  MAX_SIZE_TEST: 1656
 DATASETS:
   TRAIN: ("kins_2020_inmodal_instance_seg_train",)
   TEST: ("kins_2020_inmodal_instance_seg_val",)

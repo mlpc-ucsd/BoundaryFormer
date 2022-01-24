@@ -4,6 +4,11 @@ from .coco_panoptic import register_coco_panoptic, register_coco_panoptic_separa
 from .lvis import load_lvis_json, register_lvis_instances, get_lvis_instances_meta
 from .pascal_voc import load_voc_instances, register_pascal_voc
 from . import builtin as _builtin  # ensure the builtin datasets are registered
+
+# Added for Semantic Segmentation (TODO, move to project?)
 from . import register_coco_stuff_10k
+
+# Added for Amodal Instance Segmentation.
+from .register_kins import register_all_kins
 
 __all__ = [k for k in globals().keys() if not k.startswith("_")]
