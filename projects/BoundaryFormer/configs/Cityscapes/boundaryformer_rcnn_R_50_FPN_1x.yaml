@@ -16,7 +16,7 @@ MODEL:
   DIFFRAS:
     RESOLUTIONS: (64, 64, 64, 64, 64, 64, 64, 64)
     USE_RASTERIZED_GT: False
-    INV_SMOOTHNESS_SCHED: (0.01,)
+    INV_SMOOTHNESS_SCHED: (0.1,)
   RESNETS:
     DEPTH: 50
 # This is similar to the setting used in Mask R-CNN paper, Appendix A
@@ -42,4 +42,4 @@ SOLVER:
   IMS_PER_BATCH: 8
   CHECKPOINT_PERIOD: 8000
 TEST:
-  EVAL_PERIOD: 4000
+  EVAL_PERIOD: 0
