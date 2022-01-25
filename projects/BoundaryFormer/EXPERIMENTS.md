@@ -24,6 +24,16 @@
 |BoundaryFormer|0.10|✔|39.3945|61.0269|42.5773|19.5278|41.8965|56.9687|43.1426|
 |BoundaryFormer|0.20|✖|39.3631|60.5807|42.3390|19.1427|41.8537|57.3476|42.9176|
 
+## Ablations
+
+### Coarse-to-fine
+
+* Consider using 64 points per layer rather than doubling per layer
+
+|Notes|Weight decay|DETR aug|AP<sub>mask</sub>|AP<sub>50</sub>|AP<sub>75</sub>|AP<sub>s</sub>|AP<sub>m</sub>|AP<sub>l</sub>|AP<sub>bbox</sub>|
+|---|---|---|---|---|---|---|---|---|---|
+|BoundaryFormer|0.05|✖|36.0695|56.4905|38.5945|16.8357|38.5397|52.3292|38.4814|
+
 # COCO (test-dev)
 
 ## COCO ResNet-101 @ 3x
