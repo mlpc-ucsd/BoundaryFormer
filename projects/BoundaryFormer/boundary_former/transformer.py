@@ -44,10 +44,11 @@ def point_encoding(d_model, max_len=64):
 class DeformableTransformerControlLayer(nn.Module):
     def __init__(self, d_model=256, d_ffn=1024,
                  dropout=0.1, activation="relu",
-                 n_levels=4, n_heads=4, n_points=4):
+                 n_levels=4, n_heads=4, n_points=4, use_p2p_attn=True):
         super().__init__()
 
         self.d_model = d_model
+        self.use_p2p_attn = use_p2p_attn
         
         # cross attention
         self.cross_attn = MSDeformAttn(d_model, n_levels, n_heads, n_points)
@@ -55,9 +56,10 @@ class DeformableTransformerControlLayer(nn.Module):
         self.norm1 = nn.LayerNorm(d_model)
 
         # self attention
-        self.self_attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout)
-        self.dropout2 = nn.Dropout(dropout)
-        self.norm2 = nn.LayerNorm(d_model)
+        if self.use_p2p_attn:
+            self.self_attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout)
+            self.dropout2 = nn.Dropout(dropout)
+            self.norm2 = nn.LayerNorm(d_model)
 
         # ffn
         self.linear1 = nn.Linear(d_model, d_ffn)
@@ -82,14 +84,15 @@ class DeformableTransformerControlLayer(nn.Module):
         batch_size, num_query, num_control, dim_control = tgt.shape
         num_lvl = reference_points.shape[-2]
 
-        tgt = tgt.view(-1, num_control, dim_control)
-        query_pos = query_pos.view(-1, num_control, dim_control)        
-                
-        # self attention
-        q = k = self.with_pos_embed(tgt, query_pos)
-        tgt2 = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), tgt.transpose(0, 1))[0].transpose(0, 1)
-        tgt = tgt + self.dropout2(tgt2)
-        tgt = self.norm2(tgt)
+        if self.use_p2p_attn:
+            tgt = tgt.view(-1, num_control, dim_control)
+            query_pos = query_pos.view(-1, num_control, dim_control)        
+
+            # self attention
+            q = k = self.with_pos_embed(tgt, query_pos)
+            tgt2 = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), tgt.transpose(0, 1))[0].transpose(0, 1)
+            tgt = tgt + self.dropout2(tgt2)
+            tgt = self.norm2(tgt)
         
         tgt = tgt.reshape(batch_size, num_query * num_control, dim_control)
         query_pos = query_pos.reshape(batch_size, num_query * num_control, dim_control)
