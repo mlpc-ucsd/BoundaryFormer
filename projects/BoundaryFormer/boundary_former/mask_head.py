@@ -33,7 +33,7 @@ class BoundaryFormerPolygonHead(nn.Module):
     @configurable
     def __init__(self, input_shape: ShapeSpec, in_features, vertex_loss_fns, vertex_loss_ws, ref_init="ellipse",
                  model_dim=256, number_control_points=64, number_layers=4, vis_period=0,
-                 is_upsampling=True, iterative_refinement=False, use_cls_token=False, num_classes=80, cls_agnostic=False,
+                 is_upsampling=True, iterative_refinement=False, use_cls_token=False, use_p2p_attn=True, num_classes=80, cls_agnostic=False,
                  predict_in_box_space=False, prepool=True, dropout=0.0, deep_supervision=True, **kwargs):
         """
         NOTE: this interface is experimental.
@@ -58,6 +58,7 @@ class BoundaryFormerPolygonHead(nn.Module):
         self.is_upsampling = is_upsampling
         self.iterative_refinement = iterative_refinement or self.is_upsampling
         self.use_cls_token = use_cls_token
+        self.use_p2p_attn = use_p2p_attn
         self.num_classes = num_classes
         self.cls_agnostic = cls_agnostic
         self.vis_period = vis_period
@@ -110,7 +111,8 @@ class BoundaryFormerPolygonHead(nn.Module):
         
         self.feedforward_dimension = 1024
         decoder_layer = DeformableTransformerControlLayer(
-            self.model_dimension, self.feedforward_dimension, self.dropout, activation, self.num_feature_levels, nhead, dec_n_points)
+            self.model_dimension, self.feedforward_dimension, self.dropout, activation, self.num_feature_levels, nhead, dec_n_points,
+            use_p2p_attn=self.use_p2p_attn)
 
         if self.is_upsampling:
             decoder_layer = UpsamplingDecoderLayer(self.model_dimension, self.number_control_points, decoder_layer)
@@ -166,6 +168,7 @@ class BoundaryFormerPolygonHead(nn.Module):
             "is_upsampling": cfg.MODEL.BOUNDARY_HEAD.UPSAMPLING,
             "iterative_refinement": cfg.MODEL.BOUNDARY_HEAD.ITER_REFINE,
             "use_cls_token": cfg.MODEL.BOUNDARY_HEAD.USE_CLS_TOKEN,
+            "use_p2p_attn": cfg.MODEL.BOUNDARY_HEAD.USE_P2P_ATTN,            
             "num_classes": cfg.MODEL.ROI_HEADS.NUM_CLASSES,
             "cls_agnostic": cfg.MODEL.BOUNDARY_HEAD.CLS_AGNOSTIC_MASK,
             "predict_in_box_space": cfg.MODEL.BOUNDARY_HEAD.PRED_WITHIN_BOX,
