@@ -29,7 +29,7 @@
 ## COCO ResNet-101 @ 3x
 
 |Notes|Weight decay|DETR aug|AP<sub>mask</sub>|AP<sub>50</sub>|AP<sub>75</sub>|AP<sub>s</sub>|AP<sub>m</sub>|AP<sub>l</sub>|
-|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|
 |Mask R-CNN|0.20|✖|39.2|61.1|42.3|22.4|41.4|50.7|
 |BoundaryFormer|0.20|✖|39.4|60.9|42.6|22.1|42.0|51.2|
 
