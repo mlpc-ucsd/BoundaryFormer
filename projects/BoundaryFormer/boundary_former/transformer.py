@@ -118,11 +118,11 @@ class DeformableTransformerControlLayer(nn.Module):
         return tgt.view(batch_size, num_query, num_control, dim_control), None
 
 class UpsamplingDecoderLayer(nn.Module):    
-    def __init__(self, model_dimension, max_control_points, inner):
+    def __init__(self, model_dimension, base_control_points, max_control_points, inner):
         super().__init__()
 
         self.model_dimension = model_dimension
-        self.base_control_points = 8
+        self.base_control_points = base_control_points
         self.max_control_points = max_control_points        
         self.inner = inner
 

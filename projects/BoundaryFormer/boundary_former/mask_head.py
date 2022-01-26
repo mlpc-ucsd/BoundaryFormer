@@ -32,7 +32,7 @@ from boundary_former.utils import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh, invers
 class BoundaryFormerPolygonHead(nn.Module):
     @configurable
     def __init__(self, input_shape: ShapeSpec, in_features, vertex_loss_fns, vertex_loss_ws, ref_init="ellipse",
-                 model_dim=256, number_control_points=64, number_layers=4, vis_period=0,
+                 model_dim=256, base_number_control_points=8, number_control_points=64, number_layers=4, vis_period=0,
                  is_upsampling=True, iterative_refinement=False, use_cls_token=False, use_p2p_attn=True, num_classes=80, cls_agnostic=False,
                  predict_in_box_space=False, prepool=True, dropout=0.0, deep_supervision=True, **kwargs):
         """
@@ -50,9 +50,10 @@ class BoundaryFormerPolygonHead(nn.Module):
 
         self.batch_size_div = 16
 
-        if not ref_init in ["ellipse", "random"]:
+        if not ref_init in ["ellipse", "random", "convex"]:
             raise ValueError("unknown ref_init {0}".format(ref_init))
-        
+
+        self.base_number_control_points = base_number_control_points
         self.number_control_points = number_control_points
         self.model_dimension = model_dim
         self.is_upsampling = is_upsampling
@@ -115,7 +116,8 @@ class BoundaryFormerPolygonHead(nn.Module):
             use_p2p_attn=self.use_p2p_attn)
 
         if self.is_upsampling:
-            decoder_layer = UpsamplingDecoderLayer(self.model_dimension, self.number_control_points, decoder_layer)
+            decoder_layer = UpsamplingDecoderLayer(
+                self.model_dimension, self.base_number_control_points, self.number_control_points, decoder_layer)
             self.start_idxs = decoder_layer.idxs[0]
             number_layers = decoder_layer.number_iterations # so we can get a final "layer".
             print(number_layers)
@@ -161,6 +163,7 @@ class BoundaryFormerPolygonHead(nn.Module):
             "ref_init": cfg.MODEL.BOUNDARY_HEAD.POLY_INIT,
             "model_dim": cfg.MODEL.BOUNDARY_HEAD.MODEL_DIM,
             "number_layers": cfg.MODEL.BOUNDARY_HEAD.NUM_DEC_LAYERS,
+            "base_number_control_points": cfg.MODEL.BOUNDARY_HEAD.UPSAMPLING_BASE_NUM_PTS,
             "number_control_points": cfg.MODEL.BOUNDARY_HEAD.POLY_NUM_PTS,
             "vis_period": cfg.VIS_PERIOD,
             "vertex_loss_fns": build_poly_losses(cfg, input_shape),
