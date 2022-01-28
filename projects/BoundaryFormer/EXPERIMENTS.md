@@ -36,6 +36,12 @@
 
 # COCO (test-dev)
 
+## COCO ResNet-101 @ 1x
+
+|Notes|Weight decay|DETR aug|AP<sub>mask</sub>|AP<sub>50</sub>|AP<sub>75</sub>|AP<sub>s</sub>|AP<sub>m</sub>|AP<sub>l</sub>|
+|---|---|---|---|---|---|---|---|---|
+|BoundaryFormer|0.20|✖|37.7|58.8|40.5|20.4|40.2|49.0|
+
 ## COCO ResNet-101 @ 3x
 
 |Notes|Weight decay|DETR aug|AP<sub>mask</sub>|AP<sub>50</sub>|AP<sub>75</sub>|AP<sub>s</sub>|AP<sub>m</sub>|AP<sub>l</sub>|
