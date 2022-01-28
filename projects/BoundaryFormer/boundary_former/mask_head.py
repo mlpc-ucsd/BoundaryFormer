@@ -137,6 +137,18 @@ class BoundaryFormerPolygonHead(nn.Module):
             self.xy_embed = nn.ModuleList([self.xy_embed for _ in range(num_pred)])
 
         self._reset_parameters()
+        
+        if True:
+            self.surrogate_mask_pooler = ROIPooler(
+                output_size=14,
+                scales=tuple(1.0 / input_shape[k].stride for k in in_features),
+                sampling_ratio=0,
+                pooler_type="ROIAlignV2",
+            )
+
+            pooled_shape = None
+            self.surrogate_mask_head = MaskRCNNConvUpsampleHead(
+                pooled_shape, num_classes=self.num_classes, conv_dims=[256] * (4 + 1), conv_norm="")
 
     def _reset_parameters(self):
         for name, p in self.named_parameters():
