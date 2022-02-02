@@ -36,6 +36,12 @@
 
 # COCO (test-dev)
 
+## COCO ResNet-101 @ 1x
+
+|Notes|Weight decay|DETR aug|AP<sub>mask</sub>|AP<sub>50</sub>|AP<sub>75</sub>|AP<sub>s</sub>|AP<sub>m</sub>|AP<sub>l</sub>|
+|---|---|---|---|---|---|---|---|---|
+|BoundaryFormer|0.20|✖|37.7|58.8|40.5|20.4|40.2|49.0|
+
 ## COCO ResNet-101 @ 3x
 
 |Notes|Weight decay|DETR aug|AP<sub>mask</sub>|AP<sub>50</sub>|AP<sub>75</sub>|AP<sub>s</sub>|AP<sub>m</sub>|AP<sub>l</sub>|
@@ -54,6 +60,12 @@
 |---|---|---|---|
 |Mask R-CNN|0.20|34.1662,34.4316,34.3567|59.8479,60.4224,61.1025|
 |BoundaryFormer (0.1)|0.20|35.0478,35.0390,34.9482|61.4642,61.0663,61.5829|
+
+## Cityscapes XFer (16/32/64/128)
+
+|Notes|Weight decay|AP<sub>mask</sub>|AP<sub>50</sub>|
+|---|---|---|---|
+|BoundaryFormer (0.1)|0.20|38.3482|62.8994|
 
 ## Cityscapes ResNet-50 @ 1x with Proportional Rasterizer
 
