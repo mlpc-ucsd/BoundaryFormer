@@ -329,9 +329,10 @@ class BoundaryFormerPolygonHead(nn.Module):
 
                 if not self.deep_supervision:
                     outputs_coords = [outputs_coords[-1]]
-                
+
+                targets = instances
                 for lid, output_coords in enumerate(outputs_coords):
-                    output_loss = vertex_loss_fn(output_coords, instances, lid=lid)
+                    output_loss, targets = vertex_loss_fn(output_coords, targets, lid=lid)
                     output_losses.append(output_loss)
 
                 vertex_losses[vertex_loss_fn.name] = torch.stack(output_losses)

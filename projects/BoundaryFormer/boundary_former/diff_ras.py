@@ -3,6 +3,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from detectron2.structures.instances import Instances
 from detectron2.utils.events import get_event_storage
 
 from boundary_former.layers.diff_ras.polygon import SoftPolygon
@@ -105,7 +106,11 @@ class MaskRasterizationLoss(nn.Module):
         return targets
 
     def forward(self, preds, targets, lid=0):
-        device = targets[0].gt_boxes.device
+        if isinstance(targets, torch.Tensor):
+            device = targets.device
+        else:
+            device = targets[0].gt_boxes.device
+            
         batch_size = len(preds)
         storage = get_event_storage()
 
@@ -137,20 +142,26 @@ class MaskRasterizationLoss(nn.Module):
             self.inv_smoothness_idx += 1
             self.iter = 1
 
-        # if not pooled, we can:
-        # enforce a full image loss (unlikely to be efficient)
-        # rasterize only within the union of the GT box and the predicted polygon.
-        # rasterize only within the predicted polygon (like an RoI) and clip the GT to that.
-        clip_boxes = None
-        if self.predict_in_box_space:
-            # keep preds the same, but rasterize proposal box as GT.
-            clip_boxes = torch.cat([t.proposal_boxes.tensor for t in targets])
-
         # -0.5 needed to align the rasterizer with COCO.
         pred_masks = self.pred_rasterizer(preds * float(resolution[1].item()) - self.offset, resolution[1].item(), resolution[0].item(), 1.0).unsqueeze(1)
         # add a little noise since depending on inv_smoothness/predictions, we can exactly predict 0 or 1.0        
         pred_masks = torch.clamp(pred_masks, 0.00001, 0.99999)
-        target_masks = self._create_targets(targets, clip_boxes=clip_boxes, lid=lid)
-        target_masks = target_masks.unsqueeze(1).float()
+
+        # NOTE: this is only compatible when pred_box is not changed.
         
-        return self.loss_fn(pred_masks, target_masks)
+        if isinstance(targets, torch.Tensor):            
+            target_masks = targets            
+        else:
+            # if not pooled, we can:
+            # enforce a full image loss (unlikely to be efficient)
+            # rasterize only within the union of the GT box and the predicted polygon.
+            # rasterize only within the predicted polygon (like an RoI) and clip the GT to that.
+            clip_boxes = None
+            if self.predict_in_box_space:
+                # keep preds the same, but rasterize proposal box as GT.
+                clip_boxes = torch.cat([t.proposal_boxes.tensor for t in targets])
+            
+            target_masks = self._create_targets(targets, clip_boxes=clip_boxes, lid=lid)
+            target_masks = target_masks.unsqueeze(1).float()
+            
+        return self.loss_fn(pred_masks, target_masks), target_masks
