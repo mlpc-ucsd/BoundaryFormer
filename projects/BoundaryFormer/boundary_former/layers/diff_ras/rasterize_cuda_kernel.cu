@@ -423,18 +423,20 @@ std::vector<at::Tensor> forward_rasterize_cuda(
           }));
     }
 
-    AT_DISPATCH_FLOATING_TYPES(vertices.type(), "forward_rasterize_cuda", ([&] {
-      forward_rasterize_cuda_kernel<scalar_t><<<blocks, threads>>>(
-          vertices.data<scalar_t>(),
-          batch_size,
-          number_vertices,
-          rasterized.data<scalar_t>(),
-          contribution_map.data<int>(),
-          height,
-          width,
-          inv_smoothness,
-          mode);
-      }));
+    if (mode != MODE_HARD_MASK) {
+        AT_DISPATCH_FLOATING_TYPES(vertices.type(), "forward_rasterize_cuda", ([&] {
+        forward_rasterize_cuda_kernel<scalar_t><<<blocks, threads>>>(
+            vertices.data<scalar_t>(),
+	    batch_size,
+            number_vertices,
+            rasterized.data<scalar_t>(),
+            contribution_map.data<int>(),
+            height,
+            width,
+            inv_smoothness,
+            mode);
+        }));
+     }
 
     cudaError_t err = cudaGetLastError();
     err = cudaGetLastError();
