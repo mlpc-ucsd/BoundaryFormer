@@ -1,7 +1,6 @@
 _BASE_: "../Base-RCNN-FPN.yaml"
 MODEL:
   WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
-  #WEIGHTS: "/workspace/jlazarow/detection/train/coco_2017_train/COCO-InstanceSegmentation/boundaryformer_rcnn_R_50_FPN_1x.yaml/COMMENT#test_all_001_no_detach+MODEL.DIFFRAS.INV_SMOOTHNESS_SCHED#(0.01,)/model_final.pth"
   MASK_ON: True
   ROI_HEADS:
     NUM_CLASSES: 8
@@ -11,8 +10,9 @@ MODEL:
   BOUNDARY_HEAD:
     IN_FEATURES: ["p2", "p3", "p4", "p5"]
     PRED_WITHIN_BOX: True
-    POLY_NUM_PTS: 64
+    POLY_NUM_PTS: 128
     CLS_AGNOSTIC_MASK: True
+    UPSAMPLING_BASE_NUM_PTS: 16
   DIFFRAS:
     RESOLUTIONS: (64, 64, 64, 64, 64, 64, 64, 64)
     USE_RASTERIZED_GT: False

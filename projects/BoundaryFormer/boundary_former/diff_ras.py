@@ -87,7 +87,7 @@ class MaskRasterizationLoss(nn.Module):
         self.clip_to_proposal = not cfg.MODEL.ROI_HEADS.PROPOSAL_ONLY_GT
         self.predict_in_box_space = cfg.MODEL.BOUNDARY_HEAD.PRED_WITHIN_BOX
         
-        if False: #self.clip_to_proposal or not self.use_rasterized_gt:
+        if self.clip_to_proposal or not self.use_rasterized_gt:
             self.clipper = ClippingStrategy(cfg)
             self.gt_rasterizer = None
         else:
@@ -98,7 +98,7 @@ class MaskRasterizationLoss(nn.Module):
         self.name = "mask"
 
     def _create_targets(self, instances, clip_boxes=None, lid=0):
-        if False: #self.clip_to_proposal or not self.use_rasterized_gt:
+        if self.clip_to_proposal or not self.use_rasterized_gt:
             targets = self.clipper(instances, clip_boxes=clip_boxes, lid=lid)            
         else:            
             targets = rasterize_instances(self.gt_rasterizer, instances, self.rasterize_at)
