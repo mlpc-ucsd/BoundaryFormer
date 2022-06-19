@@ -52,11 +52,13 @@ def get_extensions():
     if is_rocm_pytorch:
         assert torch_ver >= [1, 8], "ROCM support requires PyTorch >= 1.8!"
 
-    # common code between cuda and rocm platforms, for hipify version [1,0,0] and later.
+
+        # common code between cuda and rocm platforms, for hipify version [1,0,0] and later.
     source_cuda = glob.glob(path.join(extensions_dir, "**", "*.cu")) + glob.glob(
         path.join(extensions_dir, "*.cu")
     )
     sources = [main_source] + sources
+    print(sources)
 
     extension = CppExtension
 
@@ -97,6 +99,15 @@ def get_extensions():
             include_dirs=include_dirs,
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
+        ),
+        extension(
+            "native_rasterizer",
+            [
+                os.path.join(this_dir, "projects", "BoundaryFormer", "boundary_former", "layers", "diff_ras", "rasterize_cuda.cpp"),
+                os.path.join(this_dir, "projects", "BoundaryFormer", "boundary_former", "layers", "diff_ras", "rasterize_cuda_kernel.cu"),
+            ],
+            define_macros=define_macros,
+            extra_compile_args=extra_compile_args,            
         )
     ]
 
