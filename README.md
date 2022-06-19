@@ -4,13 +4,15 @@ From [Justin Lazarow (UCSD, now at Apple)](),  [Weijian Xu (UCSD, now at Microso
 
 This repository is an official implementation of the paper [Instance Segmentation With Mask-Supervised Polygonal Boundary Transformers](https://openaccess.thecvf.com/content/CVPR2022/papers/Lazarow_Instance_Segmentation_With_Mask-Supervised_Polygonal_Boundary_Transformers_CVPR_2022_paper.pdf) presented at CVPR 2022.
 
-# Introduction
+## Introduction
 
 BoundaryFormer aims to provide a simple baseline for _regression-based_ instance segmentation. Notably, we use Transformers to regress a fixed number of points along
 a simple polygonal boundary. This process makes continuous predictions and is thus end-to-end differentiable. Our method differs from previous work in the field in two
 main ways: our method can match Mask R-CNN in Mask AP for the first time and we impose no additional supervision or ground-truth requirements as Mask R-CNN. That is,
 our method achieves parity in mask quality and supervision to mask-based baselines. We accomplish this by solely relying on a differentiable rasterization module (implemented in CUDA)
 which only requires access to ground-truth masks. We hope this can serve to drive further work in this area.
+
+<img src=".github/arch.png" width="300" >
 
 ## Installation
 
