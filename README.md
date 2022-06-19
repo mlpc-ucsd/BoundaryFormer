@@ -1,6 +1,8 @@
+# Instance Segmentation With Mask-Supervised Polygonal Boundary Transformers (Justin Lazarow, Weijian Xu, and Zhuowen Tu), CVPR 2022
+
 This is the code release for our CVPR 2022 paper:
 
-Instance Segmentation With Mask-Supervised Polygonal Boundary Transformers (Justin Lazarow, Weijian Xu, and Zhuowen Tu)
+_Instance Segmentation With Mask-Supervised Polygonal Boundary Transformers (Justin Lazarow, Weijian Xu, and Zhuowen Tu)_
 
 which we refer to as **BoundaryFormer**.
 
