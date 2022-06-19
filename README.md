@@ -12,6 +12,8 @@ main ways: our method can match Mask R-CNN in Mask AP for the first time and we 
 our method achieves parity in mask quality and supervision to mask-based baselines. We accomplish this by solely relying on a differentiable rasterization module (implemented in CUDA)
 which only requires access to ground-truth masks. We hope this can serve to drive further work in this area.
 
+Paper: [CVF](https://openaccess.thecvf.com/content/CVPR2022/papers/Lazarow_Instance_Segmentation_With_Mask-Supervised_Polygonal_Boundary_Transformers_CVPR_2022_paper.pdf)
+
 ## Installation
 
 BoundaryFormer uses the same installation process as Detectron2. Please see [installation instructions](https://detectron2.readthedocs.io/tutorials/install.html).
