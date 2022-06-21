@@ -58,7 +58,7 @@ If you do not have 8 GPUs, adjust --num-gpus and your BATCH_SIZE accordingly. Bo
 
 ## Relevant Hyperparameters/Configuration Options
 
-BoundaryFormer has a few hyperparamter options. Generally, these are configured under ```cfg.MODEL.BOUNDARY_HEAD``` (see ```projects/BoundaryFormer/boundary_former/config.py```). Please
+BoundaryFormer has a few hyperparameter options. Generally, these are configured under ```cfg.MODEL.BOUNDARY_HEAD``` (see ```projects/BoundaryFormer/boundary_former/config.py```). Please
 see the paper for ablations of these values.
 
 ### Number of layers
