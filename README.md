@@ -56,9 +56,141 @@ python projects/BoundaryFormer/train_net.py --num-gpus 8 --config-file projects/
 
 If you do not have 8 GPUs, adjust --num-gpus and your BATCH_SIZE accordingly. BoundaryFormer is trained with AdamW and we find the square-root scaling law to work well (i.e., a batch size of 8 should only induce a sqrt(2) change in LR).
 
+## Relevant Hyperparameters/Configuration Options
+
+BoundaryFormer has a few hyperparamter options. Generally, these are configured under ```cfg.MODEL.BOUNDARY_HEAD``` (see ```projects/BoundaryFormer/boundary_former/config.py```). Please
+see the paper for ablations of these values.
+
+### Number of layers
+
+``` shell
+
+cfg.MODEL.BOUNDARY_HEAD.NUM_DEC_LAYERS = 4
+
+```
+
+We generally find that 4 layers is sufficient for good performance. A small amount of performance is lost by reducing this to 3 and otherwise increasing it doesn't generally change performance.
+
+***NOTE:*** if upsampling is used, this is generally ignored and computed by a combination of ```cfg.MODEL.BOUNDARY_HEAD.POLY_NUM_PTS``` and ```cfg.MODEL.BOUNDARY_HEAD.UPSAMPLING_BASE_NUM_PTS```.
+
+### Number of control points
+
+``` shell
+
+cfg.MODEL.BOUNDARY_HEAD.POLY_NUM_PTS = 64
+
+```
+
+This defines the number of points at the _final_ output layer. If upsampling (see next section) is not used, this also constitutes the number of points at any intermediate layer. Generally,
+we find Cityscapes to benefit from more than 64 points (e.g. 128) but COCO less so.
+
+
+### Upsampling behavior
+
+Upsampling constitutes our coarse-to-fine strategy which can reduce memory and computation. Rather than using the same number of points at each layer, we start off with a small number
+of points and upsample (2x) the points in a naive manner (midpoints) at each subsequent layer. To enable:
+
+``` shell
+cfg.MODEL.BOUNDARY_HEAD.UPSAMPLING = True
+cfg.MODEL.BOUNDARY_HEAD.UPSAMPLING_BASE_NUM_PTS = 8
+cfg.MODEL.BOUNDARY_HEAD.POLY_NUM_PTS = 64
+```
+
+This will create a 4-layer (8 * 2 ** 3 = 64) coarse-to-fine model
+
+
+### Rasterization resolution
+
+BoundaryFormer uses differentiable rasterization to transform the predicted polygons into mask space for supervision. To control the resolution:
+
+
+```
+cfg.MODEL.DIFFRAS.RESOLUTIONS = [64, 64]
+```
+
+is a flattened (e.g. for X and Y resolutions) list. This can be modified per layer by expanding it. For a two-layer model:
+
+```
+cfg.MODEL.DIFFRAS.RESOLUTIONS = [32, 32, 64, 64]
+```
+
+would supervise the first layer at 32 x 32 and the second at 64 x 64.
+
+### Rasterization smoothness
+
+In the same way as [SoftRas](https://github.com/ShichenLiu/SoftRas), we require some rasterization smoothness to differentiably rasterize the masks.
+
+```
+    cfg.MODEL.DIFFRAS.INV_SMOOTHNESS_SCHED = (0.001,)
+```
+
+will produce quite sharp rasterization (larger values will be "blurrier") which seems to work well. This can also be made to be dependent on the current
+iteration:
+
+```
+    cfg.MODEL.DIFFRAS.INV_SMOOTHNESS_SCHED = (0.15, 0.005)
+    cfg.MODEL.DIFFRAS.INV_SMOOTHNESS_STEPS = (50000,)
+```
+
+to initially start with 0.15 and drop to 0.005 at iteration 50000. This hyperparameter is not particularly sensitive in our experience, however, too large of values
+will decrease performance.
+
 ## Model Zoo
 
 We release models for MS-COCO and Cityscapes.
+
+### COCO
+
+<table><tbody>
+<!-- START TABLE -->
+<!-- TABLE HEADER -->
+<th valign="bottom">Mask<br/>head</th>
+<th valign="bottom">Backbone</th>
+<th valign="bottom">lr<br/>sched</th>
+<th valign="bottom">Control<br/>points</th>
+<th valign="bottom">mask<br/>AP</th>
+<th valign="bottom">download</th>
+<!-- TABLE BODY -->
+ <tr><td align="left"><a href="projects/BoundaryFormer/configs/COCO-InstanceSegmentation/boundaryformer_rcnn_R_50_FPN_1x.yaml">BoundaryFormer</a></td>
+<td align="center">R50-FPN</td>
+<td align="center">1&times;</td>
+<td align="center">64</td>
+<td align="center">36.1</td>
+<td align="center"><a href="https://drive.google.com/file/d/1bF5EfDeNZ5b8nrlVcIrgeZ9C-R1u77-F/view?usp=sharing">model</a></td>
+</tr>
+</tbody></table>
+
+
+### Cityscapes
+
+<table><tbody>
+<!-- START TABLE -->
+<!-- TABLE HEADER -->
+<th valign="bottom">Mask<br/>head</th>
+<th valign="bottom">Backbone</th>
+<th valign="bottom">lr<br/>sched</th>
+<th valign="bottom">Control<br/>points</th>
+<th valign="bottom">initialization</th>
+<th valign="bottom">mask<br/>AP</th>
+<th valign="bottom">download</th>
+<!-- TABLE BODY -->
+ <tr><td align="left"><a href="projects/BoundaryFormer/configs/Cityscapes/boundaryformer_rcnn_R_50_FPN_1x.yaml">BoundaryFormer</a></td>
+<td align="center">R50-FPN</td>
+<td align="center">1&times;</td>
+<td align="center">64</td>
+<td align="center">ImageNet</td>
+<td align="center">34.7</td>
+<td align="center"><a href="https://drive.google.com/file/d/1HnX2ESxDrS0V-d2Ttp3CZ7Gxe-kVvYrg/view?usp=sharing">model</a></td>
+</tr>
+ <tr><td align="left"><a href="projects/BoundaryFormer/configs/Cityscapes/boundaryformer_rcnn_R_50_FPN_1x.yaml">BoundaryFormer</a></td>
+<td align="center">R50-FPN</td>
+<td align="center">1&times;</td>
+<td align="center">64</td>
+<td align="center">COCO</td>
+<td align="center">38.3</td>
+<td align="center"><a href="https://drive.google.com/file/d/1EEEO2zx9wUElK1zb6uX3Zb_GaLNfSiEt/view?usp=sharing">model</a></td>
+</tr>
+</tbody></table>
 
 ## License
 
