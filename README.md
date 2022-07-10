@@ -156,7 +156,7 @@ We release models for MS-COCO and Cityscapes.
 <td align="center">1&times;</td>
 <td align="center">64</td>
 <td align="center">36.1</td>
-<td align="center"><a href="https://drive.google.com/file/d/1bF5EfDeNZ5b8nrlVcIrgeZ9C-R1u77-F/view?usp=sharing">model</a></td>
+<td align="center"><a href="https://drive.google.com/file/d/1eoq94Qot2z-YrJ6yg0tfUKNrKpQfh0YS/view?usp=sharing">model</a></td>
 </tr>
 </tbody></table>
 
